@@ -1,0 +1,216 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DaZ Lernapp – Kapitel 2</title>
+<style>
+:root{--p:#635bff;--bg:#f5f7fb;--ink:#182033;--der:#2563eb;--die:#ef4444;--das:#16a34a}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,Segoe UI,Arial;background:var(--bg);color:var(--ink)}header{background:white;border-bottom:1px solid #e5e7eb;position:sticky;top:0}.bar,main{max-width:950px;margin:auto}.bar{padding:14px 18px;display:flex;font-weight:900;font-size:20px}.xp{margin-left:auto;background:#efefff;color:#453ed0;padding:6px 10px;border-radius:99px;font-size:15px}main{padding:22px 18px 60px}.hero{background:linear-gradient(135deg,#635bff,#8b7cff);color:white;padding:26px;border-radius:25px}.hero h1{margin:4px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:18px}.card{background:white;border:1px solid #e5e7eb;border-radius:20px;padding:19px;box-shadow:0 5px 18px #0000000a}.tag{display:inline-block;background:#efefff;color:#5148e5;padding:5px 9px;border-radius:99px;font-weight:900;font-size:13px}button{border:0;border-radius:13px;padding:12px 15px;font:inherit;font-weight:800;cursor:pointer}.primary{background:var(--p);color:white}.ghost{background:#e9ecf2}.lesson{display:none}.top{display:flex;align-items:center;gap:10px}.top b{margin-left:auto}.progress{height:10px;background:#e4e7ec;border-radius:99px;margin:15px 0 20px;overflow:hidden}.progress div{height:100%;background:var(--p)}.q{font-size:25px}.hint{color:#667085}.choices{display:grid;gap:10px;margin:18px 0}.choice{background:white;border:2px solid #e1e5eb;text-align:left}.choice.ok{border-color:#22c55e;background:#f0fdf4}.choice.bad{border-color:#ef4444;background:#fef2f2}.articles{display:flex;gap:10px;margin:20px 0}.article{color:white}.der{background:var(--der)}.die{background:var(--die)}.das{background:var(--das)}.feedback{font-weight:850;min-height:28px}.done{text-align:center;padding:25px}.stars{font-size:42px}@media(max-width:650px){.grid{grid-template-columns:1fr}.hero h1{font-size:27px}}
+
+.path{display:flex;gap:9px;flex-wrap:wrap;margin:14px 0 2px}.node{padding:7px 10px;border-radius:999px;background:#eef0f5;font-size:13px;font-weight:800}.node.active{background:#635bff;color:#fff}
+.explain{background:#f7f6ff;border:1px solid #dedbff;border-radius:16px;padding:15px;margin:12px 0}.explain b{color:#4f46e5}
+.wordbank{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.chip{background:#f2f4f7;border:2px solid #e1e5eb}.chip.used{opacity:.35}.sentence{min-height:55px;border:2px dashed #cfd4dc;border-radius:14px;padding:12px;margin:12px 0;display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.matchgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}.match{background:#fff;border:2px solid #e1e5eb}.match.sel{border-color:#635bff;background:#f4f3ff}.match.done{border-color:#22c55e;background:#f0fdf4}
+@media(max-width:520px){.matchgrid{grid-template-columns:1fr}}
+
+.visualbox{display:flex;align-items:center;justify-content:center;min-height:170px;background:linear-gradient(145deg,#f7f9ff,#eef7ff);border:2px solid #e3e8f2;border-radius:22px;margin:14px 0;font-size:92px}
+.audioBtn{font-size:17px;padding:12px 18px;border-radius:14px;background:#eef6ff;border:2px solid #bfdbfe;color:#1d4ed8;font-weight:800}
+.smallnote{font-size:13px;color:#667085;margin-top:7px}.listen{background:#f8fbff;border:1px solid #dbeafe;border-radius:18px;padding:16px;margin:12px 0}
+
+.gamebar{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:14px 0}
+.gamebox{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:10px;text-align:center;font-weight:900}
+.gamebox small{display:block;color:#667085;font-weight:700;font-size:11px}
+.retryBanner{background:#fff7ed;border:2px solid #fdba74;border-radius:18px;padding:15px;margin:12px 0}
+.mastery{font-size:14px;font-weight:800;color:#475467}
+</style></head><body><header><div class="bar">🇩🇪 DaZ Lernapp <span class="xp" id="xp">0 ⭐</span></div></header><main>
+<section id="home"><div class="hero"><span class="tag" style="background:#ffffff25;color:white">Kapitel 2</span><h1>Schule & Alltag</h1><p>Kurze Übungen · direktes Feedback · ohne Anmeldung</p></div><div class="grid" id="grid"></div></section>
+<section id="lesson" class="lesson">
+<div class="gamebar"><div class="gamebox"><span id="gx">0</span><small>⭐ XP</small></div><div class="gamebox"><span id="gstreak">0</span><small>🔥 Serie</small></div><div class="gamebox"><span id="gmist">0</span><small>🔁 Wiederholen</small></div></div>
+<div class="top"><button class="ghost" onclick="home()">← Kapitel</button><b id="count"></b></div><div class="progress"><div id="prog"></div></div><div class="card" id="qcard"></div></section>
+</main><script>
+const chapters=[
+{id:"2A",title:"In der Schule",emoji:"🏫",sub:"Räume · Artikel · sein · Zahlen",path:["Entdecken","Wörter","Grammatik","Anwenden","Check"],qs:[
+["info","Mini-Regel: sein",["ich bin · du bist · er/sie/es ist · wir sind · ihr seid · sie/Sie sind"]],["pic","Was ist das?","🏫",["die Schule","der Schulhof","das Heft"],0],
+["pic","Was ist das?","📚",["die Bibliothek","die Cafeteria","das Sekretariat"],0],
+["pic","Was ist das?","🚻",["die Toiletten","das Lehrerzimmer","die Sporthalle"],0],
+["listen","Hör zu. Wo ist die Person?","Ich bin im Klassenzimmer.",["im Klassenzimmer","im Keller","auf dem Schulhof"],0],
+["listenfill","Hör zu und ergänze.","Du bist im Sekretariat.","Du bist im ________.","Sekretariat"],
+["listen","Hör zu. Welche Zahl hörst du?","dreiundsechzig",["36","63","73"],1],
+["fill","Konjugiere „sein“: Wir ___ in der Schule.","sind"],
+["c","Wo arbeitet die Schulleitung?",["im Sekretariat","in der Turnhalle","auf dem Pausenhof"],0],["a","___ Pausenhof","der"],["a","___ Klassenzimmer","das"],["c","Schule + Hof = …",["der Schulhof","die Schulhof","das Schulhof"],0],["c","Das Sekretariat ___ im Erdgeschoss.",["bin","ist","sind"],1],["c","Wo ist Raum 203?",["im zweiten Stock","am Montag","um zwei Uhr"],0],
+["input","ich ___ (sein)",["bin"]],["input","du ___ (sein)",["bist"]],["input","wir ___ (sein)",["sind"]],
+["c","Frage → Antwort: Wo bist du?",["Ich bin im Klassenzimmer.","Ich heiße Amir.","Am Montag."],0],
+["c","Welche Frage passt? – „Im Sekretariat.“",["Wo bist du?","Wie heißt du?","Wann ist Sport?"],0],
+["input","Setze ein: Wir ___ im Fachraum.",["sind"]]]},
+{id:"2B",title:"Schulsachen & Stundenplan",emoji:"🎒",sub:"Plural · Wochentage · Fächer · Uhrzeit",path:["Entdecken","Wörter","Grammatik","Anwenden","Check"],qs:[
+["info","Mini-Regel: haben",["ich habe · du hast · er/sie/es hat · wir haben · ihr habt · sie/Sie haben"]],["pic","Was ist das?","✏️",["der Bleistift","das Lineal","die Schere"],0],
+["pic","Was ist das?","📓",["das Heft","das Buch","der Ordner"],0],
+["pic","Was ist das?","📏",["das Lineal","der Füller","die Schultasche"],0],
+["pic","Was ist das?","🎒",["die Schultasche","der Stundenplan","das Mäppchen"],0],
+["listen","Hör zu. Was hat die Schülerin?","Ich habe einen Bleistift und ein Heft.",["Bleistift und Heft","Schere und Lineal","Buch und Tasche"],0],
+["listenfill","Hör zu und ergänze.","Am Montag habe ich Deutsch.","Am ________ habe ich Deutsch.","Montag"],
+["listen","Hör zu. Wann beginnt der Unterricht?","Der Unterricht beginnt um acht Uhr.",["um 7 Uhr","um 8 Uhr","um 9 Uhr"],1],
+["fill","Konjugiere „haben“: Ihr ___ heute Sport.","habt"],
+["a","___ Heft","das"],["a","___ Schere","die"],["c","Plural von „das Buch“?",["die Buche","die Bücher","die Buchs"],1],["c","Heute ist Montag. Morgen ist …",["Sonntag","Dienstag","Freitag"],1],["c","In welchem Fach rechnet man?",["Mathematik","Deutsch","Sport"],0],["c","8:30 Uhr heißt …",["halb acht","halb neun","neun Uhr dreißig"],1],
+["input","Setze ein: Am Montag ___ ich Deutsch. (haben)",["habe"]],
+["input","Setze ein: Wir ___ heute Sport. (haben)",["haben"]],
+["c","Frage → Antwort: Wann hast du Mathe?",["Am Dienstag.","Im Klassenzimmer.","Ein Heft."],0],
+["c","Welche Frage passt? – „Um 9 Uhr.“",["Wann beginnt Deutsch?","Wo ist Deutsch?","Was brauchst du?"],0],
+["input","Setze ein: Das Buch ___ auf dem Tisch. (liegen)",["liegt"]]]},
+{id:"2C",title:"Was brauchst du?",emoji:"✏️",sub:"Akkusativ · kein/nicht · Pronomen · Satzbau",path:["Entdecken","Verben","Akkusativ","Satzbau","Dialog","Check"],qs:[
+["info","Mini-Regel: brauchen",["ich brauche · du brauchst · er/sie/es braucht · wir brauchen · ihr braucht · sie/Sie brauchen"]],["pic","Was ist das?","✂️",["die Schere","der Spitzer","der Füller"],0],
+["pic","Was ist das?","🖊️",["der Füller","das Heft","das Lineal"],0],
+["pic","Was ist das?","📖",["das Buch","die Flasche","die Schultasche"],0],
+["listen","Hör zu. Was braucht Amir?","Amir braucht einen Füller.","einen Füller|ein Heft|eine Schere".split("|"),0],
+["listenfill","Hör zu und ergänze.","Ich brauche eine Schultasche.","Ich brauche eine ________.","Schultasche"],
+["listen","Hör zu. Welche Antwort passt?","Brauchst du einen Bleistift?",["Ja, ich brauche einen.","Nein, ich bin Bleistift.","Am Montag."],0],
+["fill","Konjugiere „brauchen“: Sie ___ ein Heft.","braucht"],
+["order","Baue den Satz.",["Ich","brauche","einen","Bleistift."],"Ich brauche einen Bleistift."],
+["order","Baue die Frage.",["Was","brauchst","du","?"],"Was brauchst du ?"],
+["c","Ich brauche ___ Bleistift.",["ein","eine","einen"],2],["c","Mila braucht ___ Schere.",["ein","eine","einen"],1],["c","Ich habe ___ Radiergummi.",["keinen","keine","kein"],0],["c","Welcher Satz ist richtig?",["Ich einen brauche Stift.","Ich brauche einen Stift.","Einen ich Stift brauche."],1],["c","„Hast du kein Heft?“ – „Doch!“ bedeutet:",["Ich habe ein Heft.","Ich habe kein Heft.","Ich weiß es nicht."],0],["c","Welche Form ist richtig?",["Du brauchen ein Buch.","Du brauchst ein Buch.","Du brauche ein Buch."],1],
+["input","ich ___ einen Stift. (brauchen)",["brauche"]],["input","du ___ ein Heft. (brauchen)",["brauchst"]],["input","wir ___ Bücher. (brauchen)",["brauchen"]],
+["input","er ___ eine Schere. (brauchen)",["braucht"]],
+["c","Frage → Antwort: Was brauchst du?",["Ich brauche einen Bleistift.","Ich bin im Fachraum.","Am Freitag."],0],
+["c","Welche Frage passt? – „Nein, ich brauche keinen Füller.“",["Brauchst du einen Füller?","Wo ist dein Füller?","Wann brauchst du ihn?"],0],
+["c","Setze ein: Ihr ___ heute keine Hausaufgaben.",["habt","hat","haben"],0]]},
+{id:"2D",title:"Kalender & Termine",emoji:"📅",sub:"Monate · Jahreszeiten · am/im · wann?",path:["Entdecken","Kalender","am / im","Fragen","Anwenden","Check"],qs:[
+["info","Mini-Regel: Zeitangaben",["am + Wochentag: am Montag · im + Monat/Jahreszeit: im Mai, im Winter · um + Uhrzeit: um 8 Uhr"]],["pic","Welche Jahreszeit ist das?","🌷",["der Frühling","der Sommer","der Winter"],0],
+["pic","Welche Jahreszeit ist das?","☀️",["der Sommer","der Herbst","der Winter"],0],
+["pic","Welche Jahreszeit ist das?","🍂",["der Herbst","der Frühling","der Sommer"],0],
+["pic","Welche Jahreszeit ist das?","❄️",["der Winter","der Herbst","der Frühling"],0],
+["listen","Hör zu. Wann ist der Termin?","Der Termin ist am dritten Oktober.",["am 3. Oktober","im 3. Oktober","um 3. Oktober"],0],
+["listenfill","Hör zu und ergänze.","Die Sommerferien beginnen im August.","Die Sommerferien beginnen im ________.","August"],
+["listen","Hör zu. Welche Jahreszeit hörst du?","Der Winter beginnt im Dezember.",["Frühling","Herbst","Winter"],2],
+["fill","Ergänze: Weihnachten ist ___ Dezember.","im"],
+["order","Baue den Satz.",["Der","Test","ist","am","Montag."],"Der Test ist am Montag."],
+["c","Welcher Monat kommt nach März?",["Mai","April","Februar"],1],["c","Weihnachten ist ___ Dezember.",["am","im","um"],1],["c","Der Test ist ___ Montag.",["im","am","in"],1],["c","Was kommt nach dem Sommer?",["Winter","Frühling","Herbst"],2],["c","Welche Frage passt zu „Am Dienstag“?",["Wo?","Wann?","Wie?"],1],["c","Geöffnet: 8–12 Uhr. Wie lange?",["vier Stunden","acht Stunden","zwölf Stunden"],0],
+["input","Setze ein: Der Frühling ___ im März. (beginnen)",["beginnt"]],
+["input","Setze ein: Die Ferien ___ im August. (enden)",["enden"]],
+["c","Frage → Antwort: Wann ist dein Geburtstag?",["Im Mai.","In der Schule.","Fünf Monate."],0],
+["c","Welche Frage passt? – „Seit zwei Jahren.“",["Wie lange bist du in Deutschland?","Wo wohnst du?","Wann ist Montag?"],0],
+["c","Setze ein: Ostern ist ___ März oder April.",["im","am","um"],0],
+["input","Setze ein: Ein Jahr ___ zwölf Monate. (haben)",["hat"]]]}
+];
+let xp=+(localStorage.getItem("dazxp")||0),cur=null,i=0,right=0,lock=false;
+let mistakes=[],streak=0,retryMode=false,retryRound=0,originalCount=0;
+function save(){localStorage.setItem("dazxp",xp);document.getElementById("xp").textContent=xp+" ⭐";updateGame()}
+function updateGame(){let a=document.getElementById("gx"),b=document.getElementById("gstreak"),c=document.getElementById("gmist");if(a)a.textContent=xp;if(b)b.textContent=streak;if(c)c.textContent=mistakes.length}
+function drawHome(){let g=document.getElementById("grid");g.innerHTML="";chapters.forEach(ch=>g.innerHTML+=`<div class="card"><span class="tag">${ch.id}</span><h2>${ch.emoji} ${ch.title}</h2><p>${ch.sub}</p><button class="primary" onclick="start('${ch.id}')">Starten →</button></div>`);g.innerHTML+=`<div class="card" style="border:2px solid #d8d5ff"><span class="tag">TEST</span><h2>🏆 Wiederholung</h2><p>Gemischte Aufgaben aus 2A–2D.</p><button class="primary" onclick="test()">Test starten →</button></div>`}
+function start(id){let base=chapters.find(x=>x.id===id);cur={...base,qs:base.qs.map(q=>[...q])};i=0;right=0;mistakes=[];streak=0;retryMode=false;retryRound=0;originalCount=cur.qs.length;show()}
+function test(){let a=chapters.flatMap(x=>x.qs.filter(q=>q[0]!="info").map(q=>[...q]));a.sort(()=>Math.random()-.5);cur={id:"TEST",title:"Wiederholung",path:["Test"],qs:a.slice(0,12)};i=0;right=0;mistakes=[];streak=0;retryMode=false;retryRound=0;originalCount=cur.qs.length;show()}
+function show(){homeEl().style.display="none";lessonEl().style.display="block";render()}
+function home(){lessonEl().style.display="none";homeEl().style.display="block";drawHome()}
+function homeEl(){return document.getElementById("home")}function lessonEl(){return document.getElementById("lesson")}
+function render(){lock=false;orderPicked=[];if(i>=cur.qs.length){finish();return}let q=cur.qs[i];document.getElementById("count").textContent=`${cur.id} · ${i+1}/${cur.qs.length}`;document.getElementById("prog").style.width=(i/cur.qs.length*100)+"%";let path=cur.path||["Wiederholen","Test"];let phase=Math.min(path.length-1,Math.floor(i/(cur.qs.length/path.length)));let nav=`<div class="path">${path.map((x,n)=>`<span class="node ${n==phase?"active":""}">${x}</span>`).join("")}</div>`;let s=`<div class="tag">${cur.id}</div>${nav}<h2 class="q">${q[1]}</h2>`;
+if(q[0]=="info")s+=`<div class="explain"><b>Merke:</b><br>${q[2][0]}</div><button class="primary" onclick="next()">Verstanden →</button>`;
+else if(q[0]=="pic")s+=`<div class="visualbox" role="img" aria-label="Bild zur Wortschatzaufgabe">${q[2]}</div><div class="choices">${q[3].map((x,n)=>`<button class="choice" onclick="ansC(${n},this)">${x}</button>`).join("")}</div>`;
+else if(q[0]=="listen")s+=`<div class="listen"><button class="audioBtn" onclick="speakCurrent()">🔊 Anhören</button><div class="smallnote">Du kannst den Satz mehrmals anhören.</div></div><div class="choices">${q[3].map((x,n)=>`<button class="choice" onclick="ansC(${n},this)">${x}</button>`).join("")}</div>`;
+else if(q[0]=="listenfill")s+=`<div class="listen"><button class="audioBtn" onclick="speakCurrent()">🔊 Anhören</button><div class="smallnote">Höre genau zu und ergänze das fehlende Wort.</div></div><p style="font-size:20px">${q[3]}</p><input id="inp" autocomplete="off" autocapitalize="none" placeholder="Wort eingeben" onkeydown="if(event.key==='Enter')ansF()"><br><button class="primary" onclick="ansF()">Prüfen</button>`;
+else if(q[0]=="order")s+=`<div id="sentence" class="sentence"><span class="hint">Tippe die Wörter in der richtigen Reihenfolge an.</span></div><div class="wordbank">${q[2].map((x,n)=>`<button class="chip" data-n="${n}" onclick="pickWord(${n},this)">${x}</button>`).join("")}</div><button class="ghost" onclick="resetOrder()">Zurücksetzen</button> <button class="primary" onclick="checkOrder()">Prüfen</button>`;
+else if(q[0]=="a")s+=`<div class="articles"><button class="article der" onclick="ansA('der',this)">der</button><button class="article die" onclick="ansA('die',this)">die</button><button class="article das" onclick="ansA('das',this)">das</button></div>`;
+else if(q[0]=="input")s+=`<div class="choices"><input id="wordinput" autocomplete="off" placeholder="Antwort eingeben …" onkeydown="if(event.key==='Enter')ansInput()"><button class="primary" onclick="ansInput()">Prüfen</button></div>`;
+else s+=`<div class="choices">${q[2].map((x,n)=>`<button class="choice" onclick="ansC(${n},this)">${x}</button>`).join("")}</div>`;if(q[0]!="info" && q[0]!="order")s+=`<div id="fb" class="feedback"></div><button id="next" class="primary" style="display:none" onclick="next()">Weiter →</button>`;else if(q[0]=="order")s+=`<div id="fb" class="feedback"></div><button id="next" class="primary" style="display:none" onclick="next()">Weiter →</button>`;document.getElementById("qcard").innerHTML=s}
+let orderPicked=[];
+function pickWord(n,e){if(lock||e.classList.contains("used"))return;orderPicked.push(n);e.classList.add("used");let q=cur.qs[i],box=document.getElementById("sentence");box.innerHTML=orderPicked.map(k=>`<span class="chip">${q[2][k]}</span>`).join("")}
+function resetOrder(){orderPicked=[];document.querySelectorAll(".chip.used").forEach(x=>x.classList.remove("used"));let b=document.getElementById("sentence");if(b)b.innerHTML='<span class="hint">Tippe die Wörter in der richtigen Reihenfolge an.</span>'}
+function checkOrder(){if(lock)return;let q=cur.qs[i],v=orderPicked.map(k=>q[2][k]).join(" "),ok=v===q[3],f=document.getElementById("fb");lock=true;if(ok){right++;xp+=10;save();f.style.color="#16a34a";f.textContent="✓ Richtig! +10 ⭐"}else{f.style.color="#dc2626";f.textContent="Fast! Richtig ist: "+q[3]}registerResult(ok,q);document.getElementById("next").style.display="inline-block";orderPicked=[]}
+function normFill(x){return String(x||"").trim().toLocaleLowerCase("de-DE").replace(/[.!?,;:]+$/,"")}
+function ansF(){
+ if(lock)return;
+ let q=cur.qs[i],el=document.getElementById("inp");
+ if(!el)return;
+ let value=normFill(el.value),target=q[4];
+ if(!value)return;
+ lock=true;
+ let ok=value===normFill(target),f=document.getElementById("fb");
+ if(ok){right++;xp+=10;save();el.style.borderColor="#22c55e";f.style.color="#16a34a";f.textContent="✓ Richtig! +10 ⭐"}
+ else{el.style.borderColor="#ef4444";f.style.color="#dc2626";f.textContent="Fast! Richtig ist: "+target}
+ registerResult(ok,q);document.getElementById("next").style.display="inline-block";
+}
+function speakText(t){try{speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(t);u.lang="de-DE";u.rate=.82;u.pitch=1;speechSynthesis.speak(u)}catch(e){alert("Audio ist in diesem Browser leider nicht verfügbar.")}}
+function speakCurrent(){let q=cur.qs[i];speakText(q[2])}
+function ansC(n,e){
+ if(lock)return;
+ let q=cur.qs[i];
+ let answerIndex=(q[0]=="pic"||q[0]=="listen")?q[4]:q[3];
+ let ok=n===answerIndex;
+ lock=true;
+ mark(ok,e);
+ if(!ok){
+   let buttons=document.querySelectorAll(".choice");
+   if(buttons[answerIndex])buttons[answerIndex].classList.add("ok");
+ }
+}
+function ansA(v,e){if(lock)return;lock=true;let q=cur.qs[i],ok=v===q[2];mark(ok,e);if(!ok)document.querySelector("."+q[2]).style.outline="4px solid #86efac"}
+
+function skillOf(q){
+ let txt=(q.slice(1).join(" ")+"").toLowerCase();
+ if(txt.includes("brauch"))return "brauchen";
+ if(txt.includes("sein")||txt.includes(" bin")||txt.includes(" bist")||txt.includes(" sind"))return "sein";
+ if(txt.includes("haben")||txt.includes(" habe")||txt.includes(" habt"))return "haben";
+ if(txt.includes("___")&&(txt.includes("bleistift")||txt.includes("schere")||txt.includes("heft")))return "artikel";
+ if(txt.includes("montag")||txt.includes("dezember")||txt.includes("august")||txt.includes("wann"))return "zeit";
+ return "wortschatz";
+}
+function extraFor(skill){
+ const bank={
+  brauchen:[
+   ["c","Ergänze: Er ___ ein Lineal.",["brauche","brauchst","braucht"],2],
+   ["c","Ergänze: Wir ___ zwei Hefte.",["brauchen","braucht","brauchst"],0],
+   ["c","Ich brauche ___ Bleistift.",["ein","eine","einen"],2]
+  ],
+  sein:[
+   ["c","Ergänze: Ihr ___ im Klassenzimmer.",["seid","sind","ist"],0],
+   ["c","Ergänze: Du ___ in der Schule.",["bin","bist","seid"],1]
+  ],
+  haben:[
+   ["c","Ergänze: Du ___ heute Mathe.",["habe","hast","hat"],1],
+   ["c","Ergänze: Wir ___ zwei Bücher.",["haben","habt","hat"],0]
+  ],
+  artikel:[
+   ["c","Ich brauche ___ Schere.",["einen","eine","ein"],1],
+   ["c","Ich brauche ___ Heft.",["einen","eine","ein"],2],
+   ["c","Ich brauche ___ Radiergummi.",["einen","eine","ein"],0]
+  ],
+  zeit:[
+   ["c","Der Termin ist ___ Dienstag.",["am","im","um"],0],
+   ["c","Die Ferien sind ___ August.",["am","im","um"],1],
+   ["c","Die Schule beginnt ___ 8 Uhr.",["am","im","um"],2]
+  ],
+  wortschatz:[
+   ["pic","Was ist das?","✏️",["der Bleistift","die Schere","das Heft"],0],
+   ["pic","Was ist das?","📏",["das Lineal","das Buch","der Füller"],0]
+  ]
+ };
+ let arr=bank[skill]||bank.wortschatz;
+ return [...arr[Math.floor(Math.random()*arr.length)]];
+}
+function registerResult(ok,q){
+ if(ok){streak++; if(streak>0 && streak%3===0){xp+=5}}
+ else{
+   streak=0;
+   let skill=skillOf(q);
+   mistakes.push({q:[...q],skill});
+ }
+ updateGame();
+}
+function mark(ok,e){let f=document.getElementById("fb");if(ok){right++;xp+=10;save();e.classList.add("ok");f.style.color="#16a34a";f.textContent="✓ Richtig! +10 ⭐"}else{e.classList.add("bad");f.style.color="#dc2626";f.textContent="Noch nicht ganz – die richtige Lösung ist markiert."}document.getElementById("next").style.display="inline-block"}
+function ansInput(){if(lock)return;let q=cur.qs[i],el=document.getElementById("wordinput"),v=el.value.trim().toLocaleLowerCase("de-DE"),answers=(Array.isArray(q[2])?q[2]:[q[2]]).map(x=>x.toLocaleLowerCase("de-DE"));if(!v)return;lock=true;let ok=answers.includes(v),f=document.getElementById("fb");if(ok){right++;xp+=10;save();el.style.borderColor="#22c55e";f.style.color="#16a34a";f.textContent="✓ Richtig! +10 ⭐"}else{el.style.borderColor="#ef4444";f.style.color="#dc2626";f.textContent="Richtig wäre: "+q[2][0]}document.getElementById("next").style.display="inline-block";registerResult(ok,cur.qs[i]);}
+function next(){i++;render()}function finish(){
+ document.getElementById("prog").style.width="100%";
+ if(mistakes.length>0 && retryRound<2){
+   let weak=[...new Set(mistakes.map(x=>x.skill))];
+   let retryQs=mistakes.map(x=>[...x.q]);
+   weak.forEach(sk=>{retryQs.push(extraFor(sk));retryQs.push(extraFor(sk))});
+   retryQs.sort(()=>Math.random()-.5);
+   retryRound++; retryMode=true; mistakes=[]; i=0; right=0; cur.qs=retryQs;
+   document.getElementById("qcard").innerHTML=`<div class="retryBanner"><h2>🔁 Trainingsrunde ${retryRound}</h2><p>Ein paar Dinge waren noch unsicher. Du bekommst jetzt deine falschen Aufgaben <b>noch einmal</b> und zusätzliche Übungen zu deinen Problemstellen.</p><p class="mastery">Erst danach ist das Kapitel geschafft.</p><button class="primary" onclick="render()">Training starten →</button></div>`;
+   updateGame(); return;
+ }
+ if(mistakes.length>0){
+   let weak=[...new Set(mistakes.map(x=>x.skill))].join(", ");
+   document.getElementById("qcard").innerHTML=`<div class="done"><div class="stars">🔁</div><h2>Noch nicht ganz geschafft</h2><p>Übe diese Bereiche noch einmal: <b>${weak}</b>.</p><button class="primary" onclick="restartCurrent()">Noch einmal üben</button> <button class="ghost" onclick="home()">Zur Übersicht</button></div>`;
+   return;
+ }
+ let bonus=Math.max(20,30+streak*2);xp+=bonus;save();
+ document.getElementById("qcard").innerHTML=`<div class="done"><div class="stars">🏆🌟🌟🌟</div><h2>Kapitel gemeistert!</h2><p>Alle offenen Aufgaben wurden richtig gelöst.</p><p><b>Mastery-Bonus: +${bonus} ⭐</b></p><button class="primary" onclick="home()">Zur Übersicht</button></div>`;
+}
+function restartCurrent(){let id=cur.id;if(id==="TEST"){test()}else{start(id)}}
+drawHome();save();
+</script></body></html>
