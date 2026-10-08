@@ -213,7 +213,25 @@ function registerResult(ok,q){
 }
 function mark(ok,e){let f=document.getElementById("fb");if(ok){right++;xp+=10;save();e.classList.add("ok");f.style.color="#16a34a";f.textContent="✓ Richtig! +10 ⭐"}else{e.classList.add("bad");f.style.color="#dc2626";f.textContent="Noch nicht ganz – die richtige Lösung ist markiert."}document.getElementById("next").style.display="inline-block"}
 function ansInput(){if(lock)return;let q=cur.qs[i],el=document.getElementById("wordinput"),v=el.value.trim().toLocaleLowerCase("de-DE"),answers=(Array.isArray(q[2])?q[2]:[q[2]]).map(x=>x.toLocaleLowerCase("de-DE"));if(!v)return;lock=true;let ok=answers.includes(v),f=document.getElementById("fb");if(ok){right++;xp+=10;save();el.style.borderColor="#22c55e";f.style.color="#16a34a";f.textContent="✓ Richtig! +10 ⭐"}else{el.style.borderColor="#ef4444";f.style.color="#dc2626";f.textContent="Richtig wäre: "+q[2][0]}document.getElementById("next").style.display="inline-block";registerResult(ok,cur.qs[i]);}
-function next(){if(!lock&&cur.qs[i][0]!=="info"){registerResult(false,cur.qs[i]);}i++;render()}function finish(){document.getElementById("prog").style.width="100%";let count=mistakes.length;let bonus=Math.max(10,right*2);xp+=bonus;save();document.getElementById("qcard").innerHTML='<div class="done"><div class="stars">🏁</div><h2>Kapitel abgeschlossen!</h2><p>Du hast '+right+' Aufgaben richtig gelöst. '+(count?'Einige Antworten waren noch nicht richtig. Du kannst das Kapitel jederzeit wiederholen.':'Super, alle Aufgaben geschafft!')+'</p><p><b>Bonus: +'+bonus+' ⭐</b></p><button class="primary" onclick="restartCurrent()">Noch einmal üben</button> <button class="ghost" onclick="home()">Zur Übersicht</button></div>';}
+function next(){if(!lock&&cur.qs[i][0]!=="info"){registerResult(false,cur.qs[i]);}i++;render()}function finish(){
+ document.getElementById("prog").style.width="100%";
+ if(mistakes.length>0 && retryRound<2){
+   let weak=[...new Set(mistakes.map(x=>x.skill))];
+   let retryQs=mistakes.map(x=>[...x.q]);
+   weak.forEach(sk=>{retryQs.push(extraFor(sk));retryQs.push(extraFor(sk))});
+   retryQs.sort(()=>Math.random()-.5);
+   retryRound++; retryMode=true; mistakes=[]; i=0; right=0; cur.qs=retryQs;
+   document.getElementById("qcard").innerHTML=`<div class="retryBanner"><h2>🔁 Trainingsrunde ${retryRound}</h2><p>Ein paar Dinge waren noch unsicher. Du bekommst jetzt deine falschen Aufgaben <b>noch einmal</b> und zusätzliche Übungen zu deinen Problemstellen.</p><p class="mastery">Erst danach ist das Kapitel geschafft.</p><button class="primary" onclick="render()">Training starten →</button></div>`;
+   updateGame(); return;
+ }
+ if(mistakes.length>0){
+   let weak=[...new Set(mistakes.map(x=>x.skill))].join(", ");
+   document.getElementById("qcard").innerHTML=`<div class="done"><div class="stars">🔁</div><h2>Noch nicht ganz geschafft</h2><p>Übe diese Bereiche noch einmal: <b>${weak}</b>.</p><button class="primary" onclick="restartCurrent()">Noch einmal üben</button> <button class="ghost" onclick="home()">Zur Übersicht</button></div>`;
+   return;
+ }
+ let bonus=Math.max(20,30+streak*2);xp+=bonus;save();
+ document.getElementById("qcard").innerHTML=`<div class="done"><div class="stars">🏆🌟🌟🌟</div><h2>Kapitel gemeistert!</h2><p>Alle offenen Aufgaben wurden richtig gelöst.</p><p><b>Mastery-Bonus: +${bonus} ⭐</b></p><button class="primary" onclick="home()">Zur Übersicht</button></div>`;
+}
 function restartCurrent(){let id=cur.id;if(id==="TEST"){test()}else{start(id)}}
 drawHome();save();
 </script></body></html>
