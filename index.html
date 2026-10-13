@@ -65,6 +65,22 @@ const chapters=[
 ["c","Ergänze: Wir brauchen zwei …",["Lineal","Lineale","Linealen"],1],
 ["order","Baue den Satz im Plural.",["Ich","habe","drei","Hefte."],"Ich habe drei Hefte."],
 ["order","Baue den Satz im Plural.",["Wir","brauchen","zwei","Bücher."],"Wir brauchen zwei Bücher."],
+["listen","Hör zu: Singular oder Plural?","Ich habe drei Hefte.",["Singular: ein Heft","Plural: drei Hefte","Singular: ein Buch"],1],
+["listen","Hör zu: Welches Wort hörst du?","Die Bücher liegen auf dem Tisch.",["die Bücher","das Buch","die Bleistifte"],0],
+["listen","Hör zu: Singular oder Plural?","Das Lineal ist neu.",["Plural: die Lineale","Plural: die Bücher","Singular: das Lineal"],2],
+["listenfill","Hör zu und ergänze den Plural.","In meiner Tasche sind zwei Bücher.","In meiner Tasche sind zwei ________.","Bücher"],
+["listenfill","Hör zu und ergänze den Singular.","Ich brauche ein Heft.","Ich brauche ein ________.","Heft"],
+["listenfill","Hör zu und ergänze den Plural.","Auf dem Tisch liegen drei Bleistifte.","Auf dem Tisch liegen drei ________.","Bleistifte"],
+["input","Ergänze den Singular mit Artikel: die Bücher → …",["das Buch"]],
+["input","Ergänze den Singular mit Artikel: die Scheren → …",["die Schere"]],
+["input","Ergänze den Singular mit Artikel: die Bleistifte → …",["der Bleistift"]],
+["input","Lückentext: Ich habe ein Buch. Du hast zwei ___.",["Bücher"]],
+["input","Lückentext: Das ist ein Lineal. Das sind zwei ___.",["Lineale"]],
+["input","Lückentext: Das ist eine Schere. Das sind drei ___.",["Scheren"]],
+["c","Singular oder Plural? „die Stundenpläne“",["Plural","Singular","beides"],0],
+["c","Singular oder Plural? „das Mäppchen“",["Plural","beides","Singular"],2],
+["order","Baue den Satz: Plural.",["Die","Bücher","liegen","auf","dem","Tisch."],"Die Bücher liegen auf dem Tisch."],
+["order","Baue den Satz: Singular.",["Das","Heft","liegt","in","der","Tasche."],"Das Heft liegt in der Tasche."],
 ["c","Plural von „das Buch“?",["die Buche","die Bücher","die Buchs"],1],["c","Heute ist Montag. Morgen ist …",["Sonntag","Dienstag","Freitag"],1],["c","In welchem Fach rechnet man?",["Mathematik","Deutsch","Sport"],0],["c","8:30 Uhr heißt …",["halb acht","halb neun","neun Uhr dreißig"],1],
 ["input","Setze ein: Am Montag ___ ich Deutsch. (haben)",["habe"]],
 ["input","Setze ein: Wir ___ heute Sport. (haben)",["haben"]],
@@ -117,13 +133,12 @@ function home(){lessonEl().style.display="none";homeEl().style.display="block";d
 function homeEl(){return document.getElementById("home")}function lessonEl(){return document.getElementById("lesson")}
 function render(){lock=false;orderPicked=[];helpShown=false;if(i>=cur.qs.length){finish();return}let q=cur.qs[i];if(q[0]==="order"){let shuffled=q[2].map((_,n)=>n);for(let j=shuffled.length-1;j>0;j--){let k=Math.floor(Math.random()*(j+1));[shuffled[j],shuffled[k]]=[shuffled[k],shuffled[j]];}if(shuffled.every((v,n)=>v===n)&&shuffled.length>1){[shuffled[0],shuffled[1]]=[shuffled[1],shuffled[0]];}q._shuffled=shuffled;}document.getElementById("count").textContent=`${cur.id} · ${i+1}/${cur.qs.length}`;document.getElementById("prog").style.width=(i/cur.qs.length*100)+"%";let path=cur.path||["Wiederholen","Test"];let phase=Math.min(path.length-1,Math.floor(i/(cur.qs.length/path.length)));let nav=`<div class="path">${path.map((x,n)=>`<span class="node ${n==phase?"active":""}">${x}</span>`).join("")}</div>`;let s=`<div class="tag">${cur.id}</div>${nav}<h2 class="q">${q[1]}</h2>${supportBar()}`;
 if(q[0]=="info")s+=`<div class="explain"><b>Merke:</b><br>${q[2][0]}</div><button class="primary" onclick="next()">Verstanden →</button>`;
-else if(q[0]=="pic")s+=`<div class="visualbox" role="img" aria-label="Bild zur Wortschatzaufgabe">${q[2]}</div><div class="choices">${q[3].map((x,n)=>`<button class="choice" onclick="ansC(${n},this)">${x}</button>`).join("")}</div>`;
-else if(q[0]=="listen")s+=`<div class="listen"><button class="audioBtn" onclick="speakCurrent()">🔊 Anhören</button><div class="smallnote">Du kannst den Satz mehrmals anhören.</div></div><div class="choices">${q[3].map((x,n)=>`<button class="choice" onclick="ansC(${n},this)">${x}</button>`).join("")}</div>`;
+else if(q[0]=="pic"||q[0]=="listen"){let opts=q[3],idx=opts.map((_,n)=>n);for(let j=idx.length-1;j>0;j--){let k=Math.floor(Math.random()*(j+1));[idx[j],idx[k]]=[idx[k],idx[j]];}q._correctPos=idx.indexOf(q[4]);if(q[0]=="pic")s+=`<div class="visualbox" role="img" aria-label="Bild zur Wortschatzaufgabe">${q[2]}</div>`;else s+=`<div class="listen"><button class="audioBtn" onclick="speakCurrent()">🔊 Anhören</button><div class="smallnote">Du kannst den Satz mehrmals anhören.</div></div>`;s+=`<div class="choices">${idx.map(n=>`<button class="choice" onclick="ansC(${n},this)">${opts[n]}</button>`).join("")}</div>`;}
 else if(q[0]=="listenfill")s+=`<div class="listen"><button class="audioBtn" onclick="speakCurrent()">🔊 Anhören</button><div class="smallnote">Höre genau zu und ergänze das fehlende Wort.</div></div><p style="font-size:20px">${q[3]}</p><input id="inp" autocomplete="off" autocapitalize="none" placeholder="Wort eingeben" onkeydown="if(event.key==='Enter')ansF()"><br><button class="primary" onclick="ansF()">Prüfen</button>`;
 else if(q[0]=="order")s+=`<div id="sentence" class="sentence"><span class="hint">Tippe die Wörter in der richtigen Reihenfolge an.</span></div><div class="wordbank">${q._shuffled.map(n=>`<button class="chip" data-n="${n}" onclick="pickWord(${n},this)">${q[2][n]}</button>`).join("")}</div><button class="ghost" onclick="resetOrder()">Zurücksetzen</button> <button class="primary" onclick="checkOrder()">Prüfen</button>`;
 else if(q[0]=="a")s+=`<div class="articles"><button class="article der" onclick="ansA('der',this)">der</button><button class="article die" onclick="ansA('die',this)">die</button><button class="article das" onclick="ansA('das',this)">das</button></div>`;
 else if(q[0]=="input")s+=`<div class="choices"><input id="wordinput" autocomplete="off" placeholder="Antwort eingeben …" onkeydown="if(event.key==='Enter')ansInput()"><button class="primary" onclick="ansInput()">Prüfen</button></div>`;
-else s+=`<div class="choices">${q[2].map((x,n)=>`<button class="choice" onclick="ansC(${n},this)">${x}</button>`).join("")}</div>`;if(q[0]!="info" && q[0]!="order")s+=`<div id="fb" class="feedback"></div><button id="next" class="primary" onclick="next()">Weiter →</button>`;else if(q[0]=="order")s+=`<div id="fb" class="feedback"></div><button id="next" class="primary" onclick="next()">Weiter →</button>`;document.getElementById("qcard").innerHTML=s}
+else {if(q[0]==="c"||q[0]==="pic"||q[0]==="listen"){let opts=q[0]==="c"?q[2]:q[3],correct=q[0]==="c"?q[3]:q[4];let idx=opts.map((_,n)=>n);for(let j=idx.length-1;j>0;j--){let k=Math.floor(Math.random()*(j+1));[idx[j],idx[k]]=[idx[k],idx[j]];}q._choiceOrder=idx;q._correctPos=idx.indexOf(correct);s+=`<div class="choices">${idx.map(n=>`<button class="choice" onclick="ansC(${n},this)">${opts[n]}</button>`).join("")}</div>`;}else s+=`<div class="choices">${q[2].map((x,n)=>`<button class="choice" onclick="ansC(${n},this)">${x}</button>`).join("")}</div>`;}if(q[0]!="info" && q[0]!="order")s+=`<div id="fb" class="feedback"></div><button id="next" class="primary" onclick="next()">Weiter →</button>`;else if(q[0]=="order")s+=`<div id="fb" class="feedback"></div><button id="next" class="primary" onclick="next()">Weiter →</button>`;document.getElementById("qcard").innerHTML=s}
 
 let helpShown=false;
 const langs=[["","Sprache wählen"],["ar","العربية"],["uk","Українська"],["ru","Русский"],["tr","Türkçe"],["en","English"],["fr","Français"],["es","Español"],["it","Italiano"],["ro","Română"],["pl","Polski"],["fa","فارسی"],["ps","پښتو"],["sq","Shqip"],["bg","Български"],["hr","Hrvatski"],["bs","Bosanski"],["sr","Српски"],["so","Soomaali"],["ur","اردو"],["pt","Português"],["vi","Tiếng Việt"],["zh-CN","中文"]];
@@ -174,7 +189,7 @@ function ansC(n,e){
  mark(ok,e);
  if(!ok){
    let buttons=document.querySelectorAll(".choice");
-   if(buttons[answerIndex])buttons[answerIndex].classList.add("ok");
+   let correctButton=q._correctPos??answerIndex;if(buttons[correctButton])buttons[correctButton].classList.add("ok");
  }
 }
 function ansA(v,e){if(lock)return;lock=true;let q=cur.qs[i],ok=v===q[2];mark(ok,e);if(!ok)document.querySelector("."+q[2]).style.outline="4px solid #86efac"}
