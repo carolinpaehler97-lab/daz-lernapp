@@ -48,6 +48,13 @@ const chapters=[
 ["listen","Hör zu. Wann beginnt der Unterricht?","Der Unterricht beginnt um acht Uhr.",["um 7 Uhr","um 8 Uhr","um 9 Uhr"],1],
 ["fill","Konjugiere „haben“: Ihr ___ heute Sport.","habt"],
 ["a","___ Heft","das"],["a","___ Schere","die"],
+["c","Heute ist Montag. Morgen ist …",["Sonntag","Dienstag","Freitag"],1],["c","In welchem Fach rechnet man?",["Mathematik","Deutsch","Sport"],0],["c","8:30 Uhr heißt …",["halb acht","halb neun","neun Uhr dreißig"],1],
+["input","Setze ein: Am Montag ___ ich Deutsch. (haben)",["habe"]],
+["input","Setze ein: Wir ___ heute Sport. (haben)",["haben"]],
+["c","Frage → Antwort: Wann hast du Mathe?",["Am Dienstag.","Im Klassenzimmer.","Ein Heft."],0],
+["c","Welche Frage passt? – „Um 9 Uhr.“",["Wann beginnt Deutsch?","Wo ist Deutsch?","Was brauchst du?"],0],
+["input","Setze ein: Das Buch ___ auf dem Tisch. (liegen)",["liegt"]]]},
+{id:"2B+",title:"Singular & Plural",emoji:"🔤",sub:"Zusatztraining nach 2B · hören · ergänzen · Sätze bauen",path:["Regel","Erkennen","Hören","Ergänzen","Satzbau","Check"],qs:[
 ["info","Mini-Regel: Plural",[ "Im Plural heißt der Artikel immer <b>die</b>. Es gibt verschiedene Endungen: das Heft → die Hefte (-e), die Tasche → die Taschen (-n), das Buch → die Bücher (Umlaut + -er), der Ordner → die Ordner (keine Endung). Lerne die Mehrzahl immer mit dem Wort." ]],
 ["c","Plural: das Heft → die …",["Heften","Hefte","Hefts"],1],
 ["c","Plural: das Buch → die …",["Buchen","Buchs","Bücher"],2],
@@ -81,12 +88,8 @@ const chapters=[
 ["c","Singular oder Plural? „das Mäppchen“",["Plural","beides","Singular"],2],
 ["order","Baue den Satz: Plural.",["Die","Bücher","liegen","auf","dem","Tisch."],"Die Bücher liegen auf dem Tisch."],
 ["order","Baue den Satz: Singular.",["Das","Heft","liegt","in","der","Tasche."],"Das Heft liegt in der Tasche."],
-["c","Plural von „das Buch“?",["die Buche","die Bücher","die Buchs"],1],["c","Heute ist Montag. Morgen ist …",["Sonntag","Dienstag","Freitag"],1],["c","In welchem Fach rechnet man?",["Mathematik","Deutsch","Sport"],0],["c","8:30 Uhr heißt …",["halb acht","halb neun","neun Uhr dreißig"],1],
-["input","Setze ein: Am Montag ___ ich Deutsch. (haben)",["habe"]],
-["input","Setze ein: Wir ___ heute Sport. (haben)",["haben"]],
-["c","Frage → Antwort: Wann hast du Mathe?",["Am Dienstag.","Im Klassenzimmer.","Ein Heft."],0],
-["c","Welche Frage passt? – „Um 9 Uhr.“",["Wann beginnt Deutsch?","Wo ist Deutsch?","Was brauchst du?"],0],
-["input","Setze ein: Das Buch ___ auf dem Tisch. (liegen)",["liegt"]]]},
+["c","Plural von „das Buch“?",["die Buche","die Bücher","die Buchs"],1]
+]},
 {id:"2C",title:"Was brauchst du?",emoji:"✏️",sub:"Akkusativ · kein/nicht · Pronomen · Satzbau",path:["Entdecken","Verben","Akkusativ","Satzbau","Dialog","Check"],qs:[
 ["info","Mini-Regel: brauchen",["ich brauche · du brauchst · er/sie/es braucht · wir brauchen · ihr braucht · sie/Sie brauchen"]],["pic","Was ist das?","✂️",["die Schere","der Spitzer","der Füller"],0],
 ["pic","Was ist das?","🖊️",["der Füller","das Heft","das Lineal"],0],
@@ -125,7 +128,7 @@ let xp=+(localStorage.getItem("dazxp")||0),cur=null,i=0,right=0,lock=false;
 let mistakes=[],streak=0,retryMode=false,retryRound=0,originalCount=0;
 function save(){localStorage.setItem("dazxp",xp);document.getElementById("xp").textContent=xp+" ⭐";updateGame()}
 function updateGame(){let a=document.getElementById("gx"),b=document.getElementById("gstreak"),c=document.getElementById("gmist");if(a)a.textContent=xp;if(b)b.textContent=streak;if(c)c.textContent=mistakes.length}
-function drawHome(){let g=document.getElementById("grid");g.innerHTML="";chapters.forEach(ch=>g.innerHTML+=`<div class="card"><span class="tag">${ch.id}</span><h2>${ch.emoji} ${ch.title}</h2><p>${ch.sub}</p><button class="primary" onclick="start('${ch.id}')">Starten →</button></div>`);g.innerHTML+=`<div class="card" style="border:2px solid #d8d5ff"><span class="tag">TEST</span><h2>🏆 Wiederholung</h2><p>Gemischte Aufgaben aus 2A–2D.</p><button class="primary" onclick="test()">Test starten →</button></div>`}
+function drawHome(){let g=document.getElementById("grid");g.innerHTML="";chapters.forEach(ch=>g.innerHTML+=`<div class="card"><span class="tag">${ch.id}</span><h2>${ch.emoji} ${ch.title}</h2><p>${ch.sub}</p><button class="primary" onclick="start('${ch.id}')">Starten →</button></div>`);g.innerHTML+=`<div class="card" style="border:2px solid #d8d5ff"><span class="tag">TEST</span><h2>🏆 Wiederholung</h2><p>Gemischte Aufgaben aus Kapitel 2.</p><button class="primary" onclick="test()">Test starten →</button></div>`}
 function start(id){let base=chapters.find(x=>x.id===id);cur={...base,qs:base.qs.map(q=>[...q])};i=0;right=0;mistakes=[];streak=0;retryMode=false;retryRound=0;originalCount=cur.qs.length;show()}
 function test(){let a=chapters.flatMap(x=>x.qs.filter(q=>q[0]!="info").map(q=>[...q]));a.sort(()=>Math.random()-.5);cur={id:"TEST",title:"Wiederholung",path:["Test"],qs:a.slice(0,12)};i=0;right=0;mistakes=[];streak=0;retryMode=false;retryRound=0;originalCount=cur.qs.length;show()}
 function show(){homeEl().style.display="none";lessonEl().style.display="block";render()}
