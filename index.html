@@ -47,7 +47,25 @@ const chapters=[
 ["listenfill","Hör zu und ergänze.","Am Montag habe ich Deutsch.","Am ________ habe ich Deutsch.","Montag"],
 ["listen","Hör zu. Wann beginnt der Unterricht?","Der Unterricht beginnt um acht Uhr.",["um 7 Uhr","um 8 Uhr","um 9 Uhr"],1],
 ["fill","Konjugiere „haben“: Ihr ___ heute Sport.","habt"],
-["a","___ Heft","das"],["a","___ Schere","die"],["c","Plural von „das Buch“?",["die Buche","die Bücher","die Buchs"],1],["c","Heute ist Montag. Morgen ist …",["Sonntag","Dienstag","Freitag"],1],["c","In welchem Fach rechnet man?",["Mathematik","Deutsch","Sport"],0],["c","8:30 Uhr heißt …",["halb acht","halb neun","neun Uhr dreißig"],1],
+["a","___ Heft","das"],["a","___ Schere","die"],
+["info","Mini-Regel: Plural",[ "Im Plural heißt der Artikel immer <b>die</b>. Es gibt verschiedene Endungen: das Heft → die Hefte (-e), die Tasche → die Taschen (-n), das Buch → die Bücher (Umlaut + -er), der Ordner → die Ordner (keine Endung). Lerne die Mehrzahl immer mit dem Wort." ]],
+["c","Plural: das Heft → die …",["Heften","Hefte","Hefts"],1],
+["c","Plural: das Buch → die …",["Buchen","Buchs","Bücher"],2],
+["c","Plural: der Bleistift → die …",["Bleistifte","Bleistiften","Bleistifts"],0],
+["c","Plural: die Schere → die …",["Schere","Scheren","Scherer"],1],
+["c","Plural: das Lineal → die …",["Linealen","Lineale","Lineals"],1],
+["c","Plural: der Ordner → die …",["Ordners","Ordner","Ordnern"],1],
+["c","Welcher Satz ist richtig?",["Ich habe zwei Buch.","Ich habe zwei Bücher.","Ich habe zwei Büchers."],1],
+["c","Welche Pluralform hat einen Umlaut?",["die Hefte","die Taschen","die Bücher"],2],
+["input","Schreibe den Plural mit Artikel: das Heft → …",["die Hefte"]],
+["input","Schreibe den Plural mit Artikel: die Schultasche → …",["die Schultaschen"]],
+["input","Schreibe den Plural mit Artikel: der Stundenplan → …",["die Stundenpläne"]],
+["input","Schreibe den Plural mit Artikel: das Mäppchen → …",["die Mäppchen"]],
+["c","Ergänze: In meiner Tasche sind drei …",["Heft","Hefte","Heften"],1],
+["c","Ergänze: Wir brauchen zwei …",["Lineal","Lineale","Linealen"],1],
+["order","Baue den Satz im Plural.",["Ich","habe","drei","Hefte."],"Ich habe drei Hefte."],
+["order","Baue den Satz im Plural.",["Wir","brauchen","zwei","Bücher."],"Wir brauchen zwei Bücher."],
+["c","Plural von „das Buch“?",["die Buche","die Bücher","die Buchs"],1],["c","Heute ist Montag. Morgen ist …",["Sonntag","Dienstag","Freitag"],1],["c","In welchem Fach rechnet man?",["Mathematik","Deutsch","Sport"],0],["c","8:30 Uhr heißt …",["halb acht","halb neun","neun Uhr dreißig"],1],
 ["input","Setze ein: Am Montag ___ ich Deutsch. (haben)",["habe"]],
 ["input","Setze ein: Wir ___ heute Sport. (haben)",["haben"]],
 ["c","Frage → Antwort: Wann hast du Mathe?",["Am Dienstag.","Im Klassenzimmer.","Ein Heft."],0],
@@ -114,6 +132,7 @@ let t=q.slice(1).join(" ").toLowerCase();
 let verb=t.includes("sein")?"sein":t.includes("brauch")?"brauchen":t.includes("haben")?"haben":t.includes("liegen")?"liegen":t.includes("beginnen")?"beginnen":t.includes("enden")?"enden":null;
 let forms={sein:["bin","bist","ist","sind","seid","sind"],brauchen:["brauche","brauchst","braucht","brauchen","braucht","brauchen"],haben:["habe","hast","hat","haben","habt","haben"],liegen:["liege","liegst","liegt","liegen","liegt","liegen"],beginnen:["beginne","beginnst","beginnt","beginnen","beginnt","beginnen"],enden:["ende","endest","endet","enden","endet","enden"]};
 if(verb)return "<b>So geht es:</b> Schau auf die Person vor der Lücke. Wähle die richtige Form von <b>"+verb+"</b>.<table>"+["ich","du","er/sie/es","wir","ihr","sie/Sie"].map((p,i)=>"<tr><td>"+p+"</td><td><b>"+forms[verb][i]+"</b></td></tr>").join("")+"</table>";
+if(t.includes("plural")||t.includes("mehrzahl")||t.includes("hefte")||t.includes("bücher")||t.includes("schultaschen")||t.includes("stundenpläne")||t.includes("mäppchen"))return "<b>Plural = Mehrzahl.</b> Im Plural steht immer <b>die</b>: das Heft → die Hefte, die Schere → die Scheren, das Buch → die Bücher, der Ordner → die Ordner. Manche Wörter bekommen einen Umlaut (a → ä, u → ü).";
 if(q[0]==="listen"||q[0]==="listenfill")return "Tippe auf 🔊 Anhören. Höre den Satz mehrmals. Wähle die passende Antwort oder schreibe das fehlende Wort.";
 if(q[0]==="pic")return "Schau das Bild an und wähle das passende Wort. Lerne Nomen immer mit ihrem Artikel.";
 if(q[0]==="order")return "Tippe die Wörter in der richtigen Reihenfolge an. Im Aussagesatz steht das Verb normalerweise an zweiter Stelle.";
