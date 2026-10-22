@@ -145,7 +145,7 @@ function generatePlural(level){
  let a=words[Math.floor(Math.random()*words.length)],plural=Math.random()<.5,source=plural?a[0]:a[1],answer=plural?a[1]:a[0],mode=level===1?"c":level===2?(Math.random()<.5?"listenfill":"input"):(Math.random()<.5?"input":"order");
  if(mode==="c"){let opts=[answer,...words.filter(x=>x!==a).sort(()=>Math.random()-.5).slice(0,2).map(x=>plural?x[1]:x[0])];return ["c",(plural?"Wie heißt der Plural von ":"Wie heißt der Singular von ")+source+"?",opts,0];}
  if(mode==="listenfill"){let word=answer.replace(/^(der|die|das) /,"");let sentence=plural?"Ich sehe zwei "+word+".":"Das ist "+answer+".";return ["listenfill","Hör zu und ergänze die richtige Wortform.",sentence,plural?"Ich sehe zwei ________.":"Das ist ________.",plural?word:answer];}
- if(mode==="order"){let sentence="Hier sind "+answer+".";return ["order","Baue einen Satz mit der richtigen Wortform.",["Hier","sind",...answer.split(" ").map((w,i,arr)=>i===arr.length-1?w+".":w)],sentence];}
+ if(mode==="order"){let verb=plural?"sind":"ist",sentence="Hier "+verb+" "+answer+".";return ["order","Baue einen Satz mit der richtigen Wortform.",["Hier",verb,...answer.split(" ").map((w,i,arr)=>i===arr.length-1?w+".":w)],sentence];}
  return ["input",(plural?"Bilde den Plural: ":"Bilde den Singular: ")+source+" → …",[answer]];
 }
 function chooseTask(){
