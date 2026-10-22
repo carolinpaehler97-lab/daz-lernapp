@@ -126,22 +126,68 @@ const chapters=[
 ];
 let xp=+(localStorage.getItem("dazxp")||0),cur=null,i=0,right=0,lock=false;
 let mistakes=[],streak=0,retryMode=false,retryRound=0,originalCount=0;
+let performance={},practiceCount=0,attempts=0,trainingPool=[],recentTasks=[],currentSkill="",difficulty=1;
+function isPractice(q){return q&&q[0]!=="info"}
+function cloneTask(q){return q.slice(0,5).map(x=>Array.isArray(x)?[...x]:x)}
+function topicOf(q){
+ const t=(q.slice(1,5).flat().filter(x=>typeof x==="string").join(" ")).toLowerCase();
+ if(/plural|singular|mehrzahl|bücher|hefte|scheren|lineale|bleistifte|schultaschen|stundenpläne|mäppchen|ordner/.test(t))return "plural";
+ if(/brauch|einen|keinen|akkusativ/.test(t))return "akkusativ";
+ if(/\bsein\b|\bbin\b|\bbist\b|\bsind\b|\bseid\b/.test(t))return "sein";
+ if(/\bhaben\b|\bhabe\b|\bhast\b|\bhabt\b/.test(t))return "haben";
+ if(/montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag|monat|august|dezember|uhr|winter|sommer|frühling|herbst|wann/.test(t))return "zeit";
+ if(q[0]==="order")return "satzbau";
+ return "wortschatz";
+}
+function taskLevel(q){return q[0]==="pic"||q[0]==="a"||q[0]==="c"||q[0]==="listen"?1:q[0]==="order"||q[0]==="listenfill"?2:3}
+function chooseTask(){
+ let pool=trainingPool.filter(isPractice);if(!pool.length)return null;
+ let skills=[...new Set(pool.map(topicOf))];
+ let ranked=skills.map(sk=>({sk,score:(performance[sk]?.right||0)*2-(performance[sk]?.wrong||0)*3+(performance[sk]?.streak||0)})).sort((a,b)=>a.score-b.score);
+ let target=(Math.random()<.72?ranked.slice(0,Math.max(1,Math.ceil(ranked.length/2))):ranked)[Math.floor(Math.random()*(Math.random()<.72?Math.max(1,Math.ceil(ranked.length/2)):ranked.length))]?.sk||ranked[0].sk;
+ let stat=performance[target]||{right:0,wrong:0,streak:0};
+ difficulty=stat.streak>=4?3:stat.streak>=2?2:1;
+ let options=pool.filter(q=>topicOf(q)===target);
+ let weighted=options.flatMap(q=>Array.from({length:Math.max(1,4-Math.abs(taskLevel(q)-difficulty)*2)},()=>q));
+ let candidates=weighted.filter(q=>!recentTasks.includes(q[1]+"|"+q[2]));
+ if(!candidates.length)candidates=weighted;
+ let q=cloneTask(candidates[Math.floor(Math.random()*candidates.length)]);
+ recentTasks.push(q[1]+"|"+q[2]);if(recentTasks.length>Math.min(12,pool.length-1))recentTasks.shift();
+ return q;
+}
+function recordAttempt(ok,q){
+ let sk=topicOf(q),p=performance[sk]||(performance[sk]={right:0,wrong:0,streak:0});
+ attempts++;if(ok){p.right++;p.streak++;}else{p.wrong++;p.streak=0;streak=0;}
+ currentSkill=sk;updateGame();
+}
+function retryMessage(correct){
+ let fb=document.getElementById("fb");
+ if(fb){fb.style.color="#dc2626";fb.textContent="Noch nicht richtig. Versuche es noch einmal!"+(attempts>0&&attempts%3===0?" Nutze die Hilfe.":"");}
+ if(correct&&fb)fb.textContent+=" Tipp: "+correct;
+}
+function correctAnswer(){
+ if(lock)return;lock=true;right++;practiceCount++;xp+=10;streak++;if(streak%3===0)xp+=5;save();
+ let f=document.getElementById("fb");if(f){f.style.color="#16a34a";f.textContent="✓ Richtig! +10 ⭐ Du kannst weitergehen.";}
+ let n=document.getElementById("next");if(n){n.disabled=false;n.style.display="inline-block";}
+}
+function stopPractice(){home()}
+
 function save(){localStorage.setItem("dazxp",xp);document.getElementById("xp").textContent=xp+" ⭐";updateGame()}
 function updateGame(){let a=document.getElementById("gx"),b=document.getElementById("gstreak"),c=document.getElementById("gmist");if(a)a.textContent=xp;if(b)b.textContent=streak;if(c)c.textContent=mistakes.length}
 function drawHome(){let g=document.getElementById("grid");g.innerHTML="";chapters.forEach(ch=>g.innerHTML+=`<div class="card"><span class="tag">${ch.id}</span><h2>${ch.emoji} ${ch.title}</h2><p>${ch.sub}</p><button class="primary" onclick="start('${ch.id}')">Starten →</button></div>`);g.innerHTML+=`<div class="card" style="border:2px solid #d8d5ff"><span class="tag">TEST</span><h2>🏆 Wiederholung</h2><p>Gemischte Aufgaben aus Kapitel 2.</p><button class="primary" onclick="test()">Test starten →</button></div>`}
-function start(id){let base=chapters.find(x=>x.id===id);cur={...base,qs:base.qs.map(q=>[...q])};i=0;right=0;mistakes=[];streak=0;retryMode=false;retryRound=0;originalCount=cur.qs.length;show()}
-function test(){let a=chapters.flatMap(x=>x.qs.filter(q=>q[0]!="info").map(q=>[...q]));a.sort(()=>Math.random()-.5);cur={id:"TEST",title:"Wiederholung",path:["Test"],qs:a.slice(0,12)};i=0;right=0;mistakes=[];streak=0;retryMode=false;retryRound=0;originalCount=cur.qs.length;show()}
+function start(id){let base=chapters.find(x=>x.id===id);cur={...base,qs:base.qs.map(q=>[...q])};i=0;right=0;mistakes=[];streak=0;retryMode=false;retryRound=0;originalCount=cur.qs.length;trainingPool=cur.qs.map(cloneTask);performance={};practiceCount=0;attempts=0;recentTasks=[];show()}
+function test(){let a=chapters.flatMap(x=>x.qs.filter(q=>q[0]!="info").map(q=>[...q]));a.sort(()=>Math.random()-.5);cur={id:"TEST",title:"Wiederholung",path:["Test"],qs:a.slice(0,12)};i=0;right=0;mistakes=[];streak=0;retryMode=false;retryRound=0;originalCount=cur.qs.length;trainingPool=cur.qs.map(cloneTask);performance={};practiceCount=0;attempts=0;recentTasks=[];show()}
 function show(){homeEl().style.display="none";lessonEl().style.display="block";render()}
 function home(){lessonEl().style.display="none";homeEl().style.display="block";drawHome()}
 function homeEl(){return document.getElementById("home")}function lessonEl(){return document.getElementById("lesson")}
-function render(){lock=false;orderPicked=[];helpShown=false;if(i>=cur.qs.length){finish();return}let q=cur.qs[i];if(q[0]==="order"){let shuffled=q[2].map((_,n)=>n);for(let j=shuffled.length-1;j>0;j--){let k=Math.floor(Math.random()*(j+1));[shuffled[j],shuffled[k]]=[shuffled[k],shuffled[j]];}if(shuffled.every((v,n)=>v===n)&&shuffled.length>1){[shuffled[0],shuffled[1]]=[shuffled[1],shuffled[0]];}q._shuffled=shuffled;}document.getElementById("count").textContent=`${cur.id} · ${i+1}/${cur.qs.length}`;document.getElementById("prog").style.width=(i/cur.qs.length*100)+"%";let path=cur.path||["Wiederholen","Test"];let phase=Math.min(path.length-1,Math.floor(i/(cur.qs.length/path.length)));let nav=`<div class="path">${path.map((x,n)=>`<span class="node ${n==phase?"active":""}">${x}</span>`).join("")}</div>`;let s=`<div class="tag">${cur.id}</div>${nav}<h2 class="q">${q[1]}</h2>${supportBar()}`;
+function render(){lock=false;orderPicked=[];helpShown=false;if(i>=cur.qs.length){cur.qs.push(chooseTask());}let q=cur.qs[i];if(q[0]==="order"){let shuffled=q[2].map((_,n)=>n);for(let j=shuffled.length-1;j>0;j--){let k=Math.floor(Math.random()*(j+1));[shuffled[j],shuffled[k]]=[shuffled[k],shuffled[j]];}if(shuffled.every((v,n)=>v===n)&&shuffled.length>1){[shuffled[0],shuffled[1]]=[shuffled[1],shuffled[0]];}q._shuffled=shuffled;}document.getElementById("count").textContent=`${cur.id} · Aufgabe ${practiceCount+1} · Niveau ${difficulty}/3`;document.getElementById("prog").style.width=Math.min(100,(practiceCount%10)*10)+"%";let path=cur.path||["Wiederholen","Test"];let phase=Math.min(path.length-1,Math.floor(i/(cur.qs.length/path.length)));let nav=`<div class="path">${path.map((x,n)=>`<span class="node ${n==phase?"active":""}">${x}</span>`).join("")}</div>`;let s=`<div class="tag">${cur.id}</div>${nav}<h2 class="q">${q[1]}</h2>${supportBar()}`;
 if(q[0]=="info")s+=`<div class="explain"><b>Merke:</b><br>${q[2][0]}</div><button class="primary" onclick="next()">Verstanden →</button>`;
 else if(q[0]=="pic"||q[0]=="listen"){let opts=q[3],idx=opts.map((_,n)=>n);for(let j=idx.length-1;j>0;j--){let k=Math.floor(Math.random()*(j+1));[idx[j],idx[k]]=[idx[k],idx[j]];}q._correctPos=idx.indexOf(q[4]);if(q[0]=="pic")s+=`<div class="visualbox" role="img" aria-label="Bild zur Wortschatzaufgabe">${q[2]}</div>`;else s+=`<div class="listen"><button class="audioBtn" onclick="speakCurrent()">🔊 Anhören</button><div class="smallnote">Du kannst den Satz mehrmals anhören.</div></div>`;s+=`<div class="choices">${idx.map(n=>`<button class="choice" onclick="ansC(${n},this)">${opts[n]}</button>`).join("")}</div>`;}
 else if(q[0]=="listenfill")s+=`<div class="listen"><button class="audioBtn" onclick="speakCurrent()">🔊 Anhören</button><div class="smallnote">Höre genau zu und ergänze das fehlende Wort.</div></div><p style="font-size:20px">${q[3]}</p><input id="inp" autocomplete="off" autocapitalize="none" placeholder="Wort eingeben" onkeydown="if(event.key==='Enter')ansF()"><br><button class="primary" onclick="ansF()">Prüfen</button>`;
 else if(q[0]=="order")s+=`<div id="sentence" class="sentence"><span class="hint">Tippe die Wörter in der richtigen Reihenfolge an.</span></div><div class="wordbank">${q._shuffled.map(n=>`<button class="chip" data-n="${n}" onclick="pickWord(${n},this)">${q[2][n]}</button>`).join("")}</div><button class="ghost" onclick="resetOrder()">Zurücksetzen</button> <button class="primary" onclick="checkOrder()">Prüfen</button>`;
 else if(q[0]=="a")s+=`<div class="articles"><button class="article der" onclick="ansA('der',this)">der</button><button class="article die" onclick="ansA('die',this)">die</button><button class="article das" onclick="ansA('das',this)">das</button></div>`;
 else if(q[0]=="input")s+=`<div class="choices"><input id="wordinput" autocomplete="off" placeholder="Antwort eingeben …" onkeydown="if(event.key==='Enter')ansInput()"><button class="primary" onclick="ansInput()">Prüfen</button></div>`;
-else {if(q[0]==="c"||q[0]==="pic"||q[0]==="listen"){let opts=q[0]==="c"?q[2]:q[3],correct=q[0]==="c"?q[3]:q[4];let idx=opts.map((_,n)=>n);for(let j=idx.length-1;j>0;j--){let k=Math.floor(Math.random()*(j+1));[idx[j],idx[k]]=[idx[k],idx[j]];}q._choiceOrder=idx;q._correctPos=idx.indexOf(correct);s+=`<div class="choices">${idx.map(n=>`<button class="choice" onclick="ansC(${n},this)">${opts[n]}</button>`).join("")}</div>`;}else s+=`<div class="choices">${q[2].map((x,n)=>`<button class="choice" onclick="ansC(${n},this)">${x}</button>`).join("")}</div>`;}if(q[0]!="info" && q[0]!="order")s+=`<div id="fb" class="feedback"></div><button id="next" class="primary" onclick="next()">Weiter →</button>`;else if(q[0]=="order")s+=`<div id="fb" class="feedback"></div><button id="next" class="primary" onclick="next()">Weiter →</button>`;document.getElementById("qcard").innerHTML=s}
+else {if(q[0]==="c"||q[0]==="pic"||q[0]==="listen"){let opts=q[0]==="c"?q[2]:q[3],correct=q[0]==="c"?q[3]:q[4];let idx=opts.map((_,n)=>n);for(let j=idx.length-1;j>0;j--){let k=Math.floor(Math.random()*(j+1));[idx[j],idx[k]]=[idx[k],idx[j]];}q._choiceOrder=idx;q._correctPos=idx.indexOf(correct);s+=`<div class="choices">${idx.map(n=>`<button class="choice" onclick="ansC(${n},this)">${opts[n]}</button>`).join("")}</div>`;}else s+=`<div class="choices">${q[2].map((x,n)=>`<button class="choice" onclick="ansC(${n},this)">${x}</button>`).join("")}</div>`;}if(q[0]!="info")s+=`<div id="fb" class="feedback"></div><button id="next" class="primary" disabled style="display:none" onclick="next()">Weiter →</button><p class="smallnote">Erst richtig lösen, dann weiter. Du kannst jederzeit zur Übersicht zurück.</p>`;document.getElementById("qcard").innerHTML=s+`<div style="margin-top:22px"><button class="ghost" onclick="stopPractice()">Training beenden · Zur Übersicht</button></div>`}
 
 let helpShown=false;
 const langs=[["","Sprache wählen"],["ar","العربية"],["uk","Українська"],["ru","Русский"],["tr","Türkçe"],["en","English"],["fr","Français"],["es","Español"],["it","Italiano"],["ro","Română"],["pl","Polski"],["fa","فارسی"],["ps","پښتو"],["sq","Shqip"],["bg","Български"],["hr","Hrvatski"],["bs","Bosanski"],["sr","Српски"],["so","Soomaali"],["ur","اردو"],["pt","Português"],["vi","Tiếng Việt"],["zh-CN","中文"]];
@@ -167,36 +213,13 @@ function supportBar(){let saved=localStorage.getItem("dazlang")||"";return '<div
 let orderPicked=[];
 function pickWord(n,e){if(lock||e.classList.contains("used"))return;orderPicked.push(n);e.classList.add("used");let q=cur.qs[i],box=document.getElementById("sentence");box.innerHTML=orderPicked.map(k=>`<span class="chip">${q[2][k]}</span>`).join("")}
 function resetOrder(){orderPicked=[];document.querySelectorAll(".chip.used").forEach(x=>x.classList.remove("used"));let b=document.getElementById("sentence");if(b)b.innerHTML='<span class="hint">Tippe die Wörter in der richtigen Reihenfolge an.</span>'}
-function checkOrder(){if(lock)return;let q=cur.qs[i],v=orderPicked.map(k=>q[2][k]).join(" "),ok=v===q[3],f=document.getElementById("fb");lock=true;if(ok){right++;xp+=10;save();f.style.color="#16a34a";f.textContent="✓ Richtig! +10 ⭐"}else{f.style.color="#dc2626";f.textContent="Fast! Richtig ist: "+q[3]}registerResult(ok,q);document.getElementById("next").style.display="inline-block";orderPicked=[]}
+function checkOrder(){if(lock)return;let q=cur.qs[i],v=orderPicked.map(k=>q[2][k]).join(" "),ok=v===q[3];recordAttempt(ok,q);if(ok)correctAnswer();else{retryMessage();resetOrder();}}
 function normFill(x){return String(x||"").trim().toLocaleLowerCase("de-DE").replace(/[.!?,;:]+$/,"")}
-function ansF(){
- if(lock)return;
- let q=cur.qs[i],el=document.getElementById("inp");
- if(!el)return;
- let value=normFill(el.value),target=q[4];
- if(!value)return;
- lock=true;
- let ok=value===normFill(target),f=document.getElementById("fb");
- if(ok){right++;xp+=10;save();el.style.borderColor="#22c55e";f.style.color="#16a34a";f.textContent="✓ Richtig! +10 ⭐"}
- else{el.style.borderColor="#ef4444";f.style.color="#dc2626";f.textContent="Fast! Richtig ist: "+target}
- registerResult(ok,q);document.getElementById("next").style.display="inline-block";
-}
+function ansF(){if(lock)return;let q=cur.qs[i],el=document.getElementById("inp");if(!el||!el.value.trim())return;let ok=normFill(el.value)===normFill(q[4]);recordAttempt(ok,q);if(ok){el.style.borderColor="#22c55e";correctAnswer()}else{el.style.borderColor="#ef4444";retryMessage();el.focus();el.select();}}
 function speakText(t){try{speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(t);u.lang="de-DE";u.rate=.82;u.pitch=1;speechSynthesis.speak(u)}catch(e){alert("Audio ist in diesem Browser leider nicht verfügbar.")}}
 function speakCurrent(){let q=cur.qs[i];speakText(q[2])}
-function ansC(n,e){
- if(lock)return;
- let q=cur.qs[i];
- let answerIndex=(q[0]=="pic"||q[0]=="listen")?q[4]:q[3];
- let ok=n===answerIndex;
- lock=true;
- mark(ok,e);
- if(!ok){
-   let buttons=document.querySelectorAll(".choice");
-   let correctButton=q._correctPos??answerIndex;if(buttons[correctButton])buttons[correctButton].classList.add("ok");
- }
-}
-function ansA(v,e){if(lock)return;lock=true;let q=cur.qs[i],ok=v===q[2];mark(ok,e);if(!ok)document.querySelector("."+q[2]).style.outline="4px solid #86efac"}
-
+function ansC(n,e){if(lock)return;let q=cur.qs[i],answer=(q[0]==="pic"||q[0]==="listen")?q[4]:q[3],ok=n===answer;recordAttempt(ok,q);if(ok){e.classList.add("ok");correctAnswer();}else{e.classList.add("bad");retryMessage();setTimeout(()=>{if(!lock)e.classList.remove("bad")},700);}}
+function ansA(v,e){if(lock)return;let q=cur.qs[i],ok=v===q[2];recordAttempt(ok,q);if(ok){e.style.outline="4px solid #86efac";correctAnswer()}else{retryMessage();e.style.outline="3px solid #ef4444";setTimeout(()=>{if(!lock)e.style.outline=""},700);}}
 function skillOf(q){
  let txt=(q.slice(1).join(" ")+"").toLowerCase();
  if(txt.includes("brauch"))return "brauchen";
@@ -249,26 +272,8 @@ function registerResult(ok,q){
  updateGame();
 }
 function mark(ok,e){let f=document.getElementById("fb");if(ok){right++;xp+=10;save();e.classList.add("ok");f.style.color="#16a34a";f.textContent="✓ Richtig! +10 ⭐"}else{e.classList.add("bad");f.style.color="#dc2626";f.textContent="Noch nicht ganz – die richtige Lösung ist markiert."}document.getElementById("next").style.display="inline-block"}
-function ansInput(){if(lock)return;let q=cur.qs[i],el=document.getElementById("wordinput"),v=el.value.trim().toLocaleLowerCase("de-DE"),answers=(Array.isArray(q[2])?q[2]:[q[2]]).map(x=>x.toLocaleLowerCase("de-DE"));if(!v)return;lock=true;let ok=answers.includes(v),f=document.getElementById("fb");if(ok){right++;xp+=10;save();el.style.borderColor="#22c55e";f.style.color="#16a34a";f.textContent="✓ Richtig! +10 ⭐"}else{el.style.borderColor="#ef4444";f.style.color="#dc2626";f.textContent="Richtig wäre: "+q[2][0]}document.getElementById("next").style.display="inline-block";registerResult(ok,cur.qs[i]);}
-function next(){if(!lock&&cur.qs[i][0]!=="info"){registerResult(false,cur.qs[i]);}i++;render()}function finish(){
- document.getElementById("prog").style.width="100%";
- if(mistakes.length>0 && retryRound<2){
-   let weak=[...new Set(mistakes.map(x=>x.skill))];
-   let retryQs=mistakes.map(x=>[...x.q]);
-   weak.forEach(sk=>{retryQs.push(extraFor(sk));retryQs.push(extraFor(sk))});
-   retryQs.sort(()=>Math.random()-.5);
-   retryRound++; retryMode=true; mistakes=[]; i=0; right=0; cur.qs=retryQs;
-   document.getElementById("qcard").innerHTML=`<div class="retryBanner"><h2>🔁 Trainingsrunde ${retryRound}</h2><p>Ein paar Dinge waren noch unsicher. Du bekommst jetzt deine falschen Aufgaben <b>noch einmal</b> und zusätzliche Übungen zu deinen Problemstellen.</p><p class="mastery">Erst danach ist das Kapitel geschafft.</p><button class="primary" onclick="render()">Training starten →</button></div>`;
-   updateGame(); return;
- }
- if(mistakes.length>0){
-   let weak=[...new Set(mistakes.map(x=>x.skill))].join(", ");
-   document.getElementById("qcard").innerHTML=`<div class="done"><div class="stars">🔁</div><h2>Noch nicht ganz geschafft</h2><p>Übe diese Bereiche noch einmal: <b>${weak}</b>.</p><button class="primary" onclick="restartCurrent()">Noch einmal üben</button> <button class="ghost" onclick="home()">Zur Übersicht</button></div>`;
-   return;
- }
- let bonus=Math.max(20,30+streak*2);xp+=bonus;save();
- document.getElementById("qcard").innerHTML=`<div class="done"><div class="stars">🏆🌟🌟🌟</div><h2>Kapitel gemeistert!</h2><p>Alle offenen Aufgaben wurden richtig gelöst.</p><p><b>Mastery-Bonus: +${bonus} ⭐</b></p><button class="primary" onclick="home()">Zur Übersicht</button></div>`;
-}
+function ansInput(){if(lock)return;let q=cur.qs[i],el=document.getElementById("wordinput"),v=normFill(el.value),answers=(Array.isArray(q[2])?q[2]:[q[2]]).map(normFill);if(!v)return;let ok=answers.includes(v);recordAttempt(ok,q);if(ok){el.style.borderColor="#22c55e";correctAnswer()}else{el.style.borderColor="#ef4444";retryMessage();el.focus();el.select();}}
+function next(){if(cur.qs[i][0]!=="info"&&!lock)return;i++;render()}
 function restartCurrent(){let id=cur.id;if(id==="TEST"){test()}else{start(id)}}
 drawHome();save();
 </script></body></html>
