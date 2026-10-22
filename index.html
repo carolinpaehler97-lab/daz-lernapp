@@ -140,6 +140,14 @@ function topicOf(q){
  return "wortschatz";
 }
 function taskLevel(q){return q[0]==="pic"||q[0]==="a"||q[0]==="c"||q[0]==="listen"?1:q[0]==="order"||q[0]==="listenfill"?2:3}
+function generatePlural(level){
+ const words=[["das Heft","die Hefte"],["das Buch","die Bücher"],["der Bleistift","die Bleistifte"],["die Schere","die Scheren"],["das Lineal","die Lineale"],["der Ordner","die Ordner"],["die Schultasche","die Schultaschen"],["das Mäppchen","die Mäppchen"],["der Stundenplan","die Stundenpläne"],["der Füller","die Füller"]];
+ let a=words[Math.floor(Math.random()*words.length)],plural=Math.random()<.5,source=plural?a[0]:a[1],answer=plural?a[1]:a[0],mode=level===1?"c":level===2?(Math.random()<.5?"listenfill":"input"):(Math.random()<.5?"input":"order");
+ if(mode==="c"){let opts=[answer,...words.filter(x=>x!==a).sort(()=>Math.random()-.5).slice(0,2).map(x=>plural?x[1]:x[0])];return ["c",(plural?"Wie heißt der Plural von ":"Wie heißt der Singular von ")+source+"?",opts,0];}
+ if(mode==="listenfill"){let word=answer.replace(/^(der|die|das) /,"");let sentence=plural?"Ich sehe zwei "+word+".":"Das ist "+answer+".";return ["listenfill","Hör zu und ergänze die richtige Wortform.",sentence,plural?"Ich sehe zwei ________.":"Das ist ________.",plural?word:answer];}
+ if(mode==="order"){let sentence="Hier sind "+answer+".";return ["order","Baue einen Satz mit der richtigen Wortform.",["Hier","sind",...answer.split(" ").map((w,i,arr)=>i===arr.length-1?w+".":w)],sentence];}
+ return ["input",(plural?"Bilde den Plural: ":"Bilde den Singular: ")+source+" → …",[answer]];
+}
 function chooseTask(){
  let pool=trainingPool.filter(isPractice);if(!pool.length)return null;
  let skills=[...new Set(pool.map(topicOf))];
@@ -151,7 +159,7 @@ function chooseTask(){
  let weighted=options.flatMap(q=>Array.from({length:Math.max(1,4-Math.abs(taskLevel(q)-difficulty)*2)},()=>q));
  let candidates=weighted.filter(q=>!recentTasks.includes(q[1]+"|"+q[2]));
  if(!candidates.length)candidates=weighted;
- let q=cloneTask(candidates[Math.floor(Math.random()*candidates.length)]);
+ let q=target==="plural"&&Math.random()<.4?generatePlural(difficulty):cloneTask(candidates[Math.floor(Math.random()*candidates.length)]);
  recentTasks.push(q[1]+"|"+q[2]);if(recentTasks.length>Math.min(12,pool.length-1))recentTasks.shift();
  return q;
 }
